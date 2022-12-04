@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import MoviesTable from "./moviesTable";
 import ListGroup from "./common/listGroup";
 import Pagination from "./common/pagination";
-import { getMovies, deleteMovie } from "../services/movieService";
+import { getMovies, deleteMovie, saveMovie } from "../services/movieService";
 import { getGenres } from "../services/genreService";
 import { paginate } from "../utils/paginate";
 import _ from "lodash";
@@ -26,6 +26,7 @@ class Movies extends Component {
     const genres = [{ _id: "", name: "All Genres" }, ...data];
     const { data: movies } = await getMovies();
     this.setState({ movies, genres });
+    // console.log(movies);
   }
 
   handleDelete = async (movie) => {
@@ -35,6 +36,7 @@ class Movies extends Component {
     console.log(movie._id);
     try {
       await deleteMovie(movie._id);
+      toast.success(`${movie} has been deleted successfully`);
     } catch (ex) {
       if (ex.response && ex.response.status === 404) {
         toast.error("this movie has already been deleted");
@@ -43,12 +45,18 @@ class Movies extends Component {
     }
   };
 
-  handleLike = (movie) => {
+  handleLike = async (movie) => {
     const movies = [...this.state.movies];
     const index = movies.indexOf(movie);
     movies[index] = { ...movies[index] };
     movies[index].liked = !movies[index].liked;
     this.setState({ movies });
+    try {
+      await saveMovie(movies[index]);
+      toast.success("liked");
+    } catch (ex) {
+      toast.error("cannnot like now");
+    }
   };
 
   handlePageChange = (page) => {
@@ -96,7 +104,8 @@ class Movies extends Component {
     const { length: count } = this.state.movies;
     const { pageSize, currentPage, sortColumn, searchQuery } = this.state;
 
-    if (count === 0) return <p>There are no movies in the database.</p>;
+    if (count === 0)
+      return <p className="spin">There are no movies in the database.</p>;
 
     const { totalCount, data: movies } = this.getPagedData();
 

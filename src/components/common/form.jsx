@@ -6,14 +6,16 @@ import Select from "./select";
 class Form extends Component {
   state = {
     data: {},
-    errors: {}
+    errors: {},
   };
 
   validate = () => {
-    const options = { abortEarly: false };
-    const { error } = Joi.validate(this.state.data, this.schema, options);
+    const { error } = Joi.validate(this.state.data, this.schema, {
+      abortEarly: false,
+    });
     if (!error) return null;
 
+    console.log(error.details[0]);
     const errors = {};
     for (let item of error.details) errors[item.path[0]] = item.message;
     return errors;
@@ -26,7 +28,7 @@ class Form extends Component {
     return error ? error.details[0].message : null;
   };
 
-  handleSubmit = e => {
+  handleSubmit = (e) => {
     e.preventDefault();
 
     const errors = this.validate();
@@ -58,7 +60,6 @@ class Form extends Component {
 
   renderSelect(name, label, options) {
     const { data, errors } = this.state;
-
     return (
       <Select
         name={name}
