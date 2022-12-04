@@ -75,22 +75,23 @@ class MovieForm extends Form {
     movieWithGenre.dailyRentalRate = movieWithGenreId.dailyRentalRate;
     movieWithGenre.liked = movieWithGenreId.liked;
     await saveMovie(movieWithGenre);
-
     this.props.history.push("/movies");
   };
 
   render() {
     return (
-      <div>
-        <h1>Movie Form</h1>
-        <form onSubmit={this.handleSubmit}>
-          {this.renderInput("title", "Title")}
-          {this.renderSelect("genreId", "Genre", this.state.genres)}
-          {this.renderInput("numberInStock", "Number in Stock", "number")}
-          {this.renderInput("dailyRentalRate", "Rate")}
-          {this.renderButton("Save")}
-        </form>
-      </div>
+      <React.Fragment>
+        <div>
+          <h1>Movie Form</h1>
+          <form onSubmit={this.handleSubmit}>
+            {this.renderInput("title", "Title")}
+            {this.renderSelect("genreId", "Genre", this.state.genres)}
+            {this.renderInput("numberInStock", "Number in Stock", "number")}
+            {this.renderInput("dailyRentalRate", "Rate")}
+            {this.renderButton("Save")}
+          </form>
+        </div>
+      </React.Fragment>
     );
   }
 }

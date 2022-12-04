@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { Link } from "react-router-dom";
 import MoviesTable from "./moviesTable";
 import ListGroup from "./common/listGroup";
@@ -9,7 +9,12 @@ import { getGenres } from "../services/genreService";
 import { paginate } from "../utils/paginate";
 import _ from "lodash";
 import SearchBox from "./searchBox";
-
+import axios from "axios";
+import "react-toastify/dist/ReactToastify.css";
+axios.interceptors.response.use(null, (error) => {
+  toast.error("Interceptor called from jsx");
+  return Promise.reject(error);
+});
 class Movies extends Component {
   state = {
     movies: [],
@@ -22,21 +27,26 @@ class Movies extends Component {
   };
 
   async componentDidMount() {
-    const { data } = await getGenres();
-    const genres = [{ _id: "", name: "All Genres" }, ...data];
-    const { data: movies } = await getMovies();
-    this.setState({ movies, genres });
-    // console.log(movies);
+    try {
+      const { data } = await getGenres();
+      const genres = [{ _id: "", name: "All Genres" }, ...data];
+      const { data: movies } = await getMovies();
+      this.setState({ movies, genres });
+    } catch (ex) {
+      if (!ex.response) {
+        toast.error("error");
+      }
+    }
   }
 
   handleDelete = async (movie) => {
+    const deletingMovie = movie.title;
     const originalMovies = this.state.movies;
     const movies = originalMovies.filter((m) => m._id !== movie._id);
     this.setState({ movies });
-    console.log(movie._id);
     try {
       await deleteMovie(movie._id);
-      toast.success(`${movie} has been deleted successfully`);
+      toast.success(`"${deletingMovie}"has been deleted successfully`);
     } catch (ex) {
       if (ex.response && ex.response.status === 404) {
         toast.error("this movie has already been deleted");
@@ -53,9 +63,8 @@ class Movies extends Component {
     this.setState({ movies });
     try {
       await saveMovie(movies[index]);
-      toast.success("liked");
     } catch (ex) {
-      toast.error("cannnot like now");
+      toast.error("cannot like now");
     }
   };
 
@@ -110,39 +119,53 @@ class Movies extends Component {
     const { totalCount, data: movies } = this.getPagedData();
 
     return (
-      <div className="row">
-        <div className="col-3">
-          <ListGroup
-            items={this.state.genres}
-            selectedItem={this.state.selectedGenre}
-            onItemSelect={this.handleGenreSelect}
+      <React.Fragment>
+        <div className="row">
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
           />
+          <div className="col-3">
+            <ListGroup
+              items={this.state.genres}
+              selectedItem={this.state.selectedGenre}
+              onItemSelect={this.handleGenreSelect}
+            />
+          </div>
+          <div className="col">
+            <Link
+              to="/movies/new"
+              className="btn btn-primary"
+              style={{ marginBottom: 20 }}
+            >
+              New Movie
+            </Link>
+            <p>Showing {totalCount} movies in the database.</p>
+            <SearchBox value={searchQuery} onChange={this.handleSearch} />
+            <MoviesTable
+              movies={movies}
+              sortColumn={sortColumn}
+              onLike={this.handleLike}
+              onDelete={this.handleDelete}
+              onSort={this.handleSort}
+            />
+            <Pagination
+              itemsCount={totalCount}
+              pageSize={pageSize}
+              currentPage={currentPage}
+              onPageChange={this.handlePageChange}
+            />
+          </div>
         </div>
-        <div className="col">
-          <Link
-            to="/movies/new"
-            className="btn btn-primary"
-            style={{ marginBottom: 20 }}
-          >
-            New Movie
-          </Link>
-          <p>Showing {totalCount} movies in the database.</p>
-          <SearchBox value={searchQuery} onChange={this.handleSearch} />
-          <MoviesTable
-            movies={movies}
-            sortColumn={sortColumn}
-            onLike={this.handleLike}
-            onDelete={this.handleDelete}
-            onSort={this.handleSort}
-          />
-          <Pagination
-            itemsCount={totalCount}
-            pageSize={pageSize}
-            currentPage={currentPage}
-            onPageChange={this.handlePageChange}
-          />
-        </div>
-      </div>
+      </React.Fragment>
     );
   }
 }

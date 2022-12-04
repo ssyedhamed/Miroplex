@@ -15,7 +15,6 @@ class Form extends Component {
     });
     if (!error) return null;
 
-    console.log(error.details[0]);
     const errors = {};
     for (let item of error.details) errors[item.path[0]] = item.message;
     return errors;

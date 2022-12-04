@@ -9,6 +9,7 @@ import NavBar from "./components/navBar";
 import LoginForm from "./components/loginForm";
 import RegisterForm from "./components/registerForm";
 import "./App.css";
+import Home from "./components/home";
 
 class App extends Component {
   render() {
@@ -24,7 +25,8 @@ class App extends Component {
             <Route path="/customers" component={Customers} />
             <Route path="/rentals" component={Rentals} />
             <Route path="/not-found" component={NotFound} />
-            <Redirect from="/" exact to="/movies" />
+            <Route path={"/home"} component={Home} />
+            <Redirect from="/" exact to="/home" />
             <Redirect to="/not-found" />
           </Switch>
         </main>
